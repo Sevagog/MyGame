@@ -49,8 +49,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     // Что это?
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-//        gameThread.setTowardPoint((int)event.getX(),(int)event.getY());
+        gameThread.setTowardPoint((int) event.getX(), (int) event.getY());
 
         return false;
     }
+
+
 }

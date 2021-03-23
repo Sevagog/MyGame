@@ -10,8 +10,6 @@ import android.view.SurfaceHolder;
 
 public class GameThread extends Thread {
 
-    private int xDys, yDis;
-
     // Что это?
     private SurfaceHolder surfaceHolder;
 
@@ -23,17 +21,19 @@ public class GameThread extends Thread {
     private Bitmap floor;
     private Bitmap playerHelper;
     private Bitmap player;
+    private Bitmap joy;
+    private Bitmap joy2;
 
-
-    // Переменные для положения персонажа
-    private int playerPointX;
-    private int playerPointY;
+    private int towardPointX;
+    private int towardPointY;
 
     // Что это?
     public GameThread(Context context, SurfaceHolder surfaceHolder) {
 
         // Сюда все картинки?
         floor = BitmapFactory.decodeResource(context.getResources(), R.drawable.floor);
+        joy = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick);
+        joy2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick2);
         playerHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
         player = Bitmap.createBitmap(playerHelper, 0, 0, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
 
@@ -45,14 +45,22 @@ public class GameThread extends Thread {
         running = false;
     }
 
+    public void setTowardPoint(int x, int y) {
+        towardPointX = x;
+        towardPointY = y;
+    }
+
     // Тут вся логика
     @Override
     public void run() {
-        int rw , rh, scale, xRatio, yRatio, rZeroX;
+        int rw , rh, scaleP, scaleJ, scaleJ2, xRatio, yRatio, rZeroX, jZeroX, playerPointX, playerPointY, jc, jc2, jIndent;
         double help, help2;
 
-        // Регулеровка размера персонажа
-        scale = 3;
+        // Регулеровка размера
+        scaleP = 3;
+        scaleJ = 5;
+        scaleJ2 = 3;
+        jIndent = 20;
 
         // Регулеровка соотношения сторон
         xRatio = floor.getWidth() / player.getWidth();
@@ -74,14 +82,30 @@ public class GameThread extends Thread {
             help2 = canvas.getHeight() * help;
             rw = (int)help2;
 
+            jc = rh / scaleJ;
+            jc2 = jc / scaleJ2;
+
             rZeroX = (canvas.getWidth() - rw) / 2;
+            jZeroX = rZeroX + jIndent;
 
             if (canvas != null) {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-                    player = Bitmap.createScaledBitmap(player, (rw / xRatio) / scale, (rh / yRatio) / scale, true);
+                    player = Bitmap.createScaledBitmap(player, (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
+                    joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
+
+                    canvas.drawARGB(255,0,0,0);
                     canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
+                    canvas.drawBitmap(joy, jZeroX, rh - jc - jIndent, backgroundPaint);
+
+                    if (towardPointX > jZeroX && towardPointX < jZeroX + jc && towardPointY > rh - jc - jIndent && towardPointY < rh - jIndent) {
+                        canvas.drawBitmap(joy2, towardPointX, towardPointY, backgroundPaint);
+                    } else {
+                        canvas.drawBitmap(joy2, jZeroX + jc / scaleJ2, rh - jc + jc / scaleJ2 - jIndent, backgroundPaint);
+                    }
+
                     canvas.drawBitmap(player, rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                 } finally {
