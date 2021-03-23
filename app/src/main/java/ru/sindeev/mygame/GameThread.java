@@ -48,15 +48,15 @@ public class GameThread extends Thread {
     // Тут вся логика
     @Override
     public void run() {
-        int rw , rh, scale, xRatio, yRatio;
+        int rw , rh, scale, xRatio, yRatio, rZeroX;
         double help, help2;
 
         // Регулеровка размера персонажа
-//        scale = 2;
+        scale = 3;
 
         // Регулеровка соотношения сторон
-//        xRatio = floor.getWidth() / player.getWidth();
-//        yRatio = floor.getHeight() / player.getHeight();
+        xRatio = floor.getWidth() / player.getWidth();
+        yRatio = floor.getHeight() / player.getHeight();
 
         backgroundPaint.setFilterBitmap(true);
         backgroundPaint.setDither(true);
@@ -74,13 +74,15 @@ public class GameThread extends Thread {
             help2 = canvas.getHeight() * help;
             rw = (int)help2;
 
+            rZeroX = (canvas.getWidth() - rw) / 2;
+
             if (canvas != null) {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-//                    player = Bitmap.createScaledBitmap(player, (rw / xRatio) / scale, (rh / yRatio) / scale, true);
-                    canvas.drawBitmap(floor, 0, 0, backgroundPaint);
-//                    canvas.drawBitmap(player, playerPointX, playerPointY, backgroundPaint);
+                    player = Bitmap.createScaledBitmap(player, (rw / xRatio) / scale, (rh / yRatio) / scale, true);
+                    canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
+                    canvas.drawBitmap(player, rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                 } finally {
                     surfaceHolder.unlockCanvasAndPost(canvas);
