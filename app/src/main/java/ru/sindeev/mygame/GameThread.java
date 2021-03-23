@@ -49,6 +49,7 @@ public class GameThread extends Thread {
     @Override
     public void run() {
         int rw , rh, scale, xRatio, yRatio;
+        double help, help2;
 
         // Регулеровка размера персонажа
 //        scale = 2;
@@ -69,7 +70,9 @@ public class GameThread extends Thread {
             Canvas canvas = surfaceHolder.lockCanvas();
 
             rh = canvas.getHeight();
-            rw = canvas.getHeight() * (floor.getHeight() / floor.getWidth());
+            help = (float)(floor.getWidth()) / (float)(floor.getHeight());
+            help2 = canvas.getHeight() * help;
+            rw = (int)help2;
 
             if (canvas != null) {
                 try {
