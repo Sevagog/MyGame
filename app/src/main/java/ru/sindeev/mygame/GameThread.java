@@ -20,7 +20,7 @@ public class GameThread extends Thread {
     // Картинки вставлять через это?
     private Bitmap floor;
     private Bitmap playerHelper;
-    private Bitmap player;
+    private Bitmap player[];
     private Bitmap joy;
     private Bitmap joy2;
 
@@ -35,7 +35,7 @@ public class GameThread extends Thread {
         joy = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick);
         joy2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick2);
         playerHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
-        player = Bitmap.createBitmap(playerHelper, 0, 0, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
+        player[0] = Bitmap.createBitmap(playerHelper, 0, 0, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
 
         this.surfaceHolder = surfaceHolder;
     }
@@ -53,25 +53,35 @@ public class GameThread extends Thread {
     // Тут вся логика
     @Override
     public void run() {
-        int rw , rh, scaleP, scaleJ, scaleJ2, xRatio, yRatio, rZeroX, jZeroX, playerPointX, playerPointY, jc, jc2, jIndent;
+        // Переменные для поля
+        int rw , rh, rZeroX;
+        // Переменные для регулеровок размера всего и вся
+        int xRatio, yRatio, scaleP, scaleJ, scaleJ2;
+        // Переменные для подсчета размера поля
         double help, help2;
+        // Переменные для подсчета размера и положения джойстиков
+        int jc, jc2;
+        int jZeroX, jIndent;
+        // Переменные для перемещения персонажа
+        int playerPointX, playerPointY, movementX = 0, movementY = 0;
+        double movementCo;
 
         // Регулеровка размера
         scaleP = 3;
-        scaleJ = 5;
+        scaleJ = 4;
         scaleJ2 = 3;
         jIndent = 20;
-
         // Регулеровка соотношения сторон
-        xRatio = floor.getWidth() / player.getWidth();
-        yRatio = floor.getHeight() / player.getHeight();
+        xRatio = floor.getWidth() / player[0].getWidth();
+        yRatio = floor.getHeight() / player[0].getHeight();
 
         backgroundPaint.setFilterBitmap(true);
         backgroundPaint.setDither(true);
 
         // Пригодиться для считывания положения персонажа
-        playerPointX = 250;
-        playerPointY = 250;
+        playerPointX = 0;
+        playerPointY = 0;
+        movementCo = 1.5;
 
         while (running) {
 
@@ -92,7 +102,7 @@ public class GameThread extends Thread {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-                    player = Bitmap.createScaledBitmap(player, (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    player[0] = Bitmap.createScaledBitmap(player[0], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
                     joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
                     joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
 
@@ -100,13 +110,34 @@ public class GameThread extends Thread {
                     canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
                     canvas.drawBitmap(joy, jZeroX, rh - jc - jIndent, backgroundPaint);
 
+                    // Проверка, попало ли нажатие на джойстик
                     if (towardPointX > jZeroX && towardPointX < jZeroX + jc && towardPointY > rh - jc - jIndent && towardPointY < rh - jIndent) {
-                        canvas.drawBitmap(joy2, towardPointX, towardPointY, backgroundPaint);
+                        canvas.drawBitmap(joy2, towardPointX - jc2 / 2, towardPointY - jc2 / 2, backgroundPaint);
+
+                        movementX = (int)((towardPointX - (jZeroX + jc / 2)) * movementCo);
+                        movementY = (int)((towardPointY - (rh - jc / 2 - jIndent)) * movementCo);
+
+                        playerPointX += movementX;
+                        playerPointY += movementY;
+
+                        if (playerPointX > rw - player[0].getWidth()){
+                            playerPointX = rw - player[0].getWidth();
+                        }
+                        if (playerPointY > rh - player[0].getHeight()){
+                            playerPointY = rh - player[0].getHeight();
+                        }
+                        if (playerPointX < 0){
+                            playerPointX = 0;
+                        }
+                        if (playerPointY < 0){
+                            playerPointY = 0;
+                        }
+
                     } else {
                         canvas.drawBitmap(joy2, jZeroX + jc / scaleJ2, rh - jc + jc / scaleJ2 - jIndent, backgroundPaint);
                     }
 
-                    canvas.drawBitmap(player, rZeroX + playerPointX, playerPointY, backgroundPaint);
+                    canvas.drawBitmap(player[0], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                 } finally {
                     surfaceHolder.unlockCanvasAndPost(canvas);
