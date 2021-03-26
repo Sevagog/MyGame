@@ -20,7 +20,7 @@ public class GameThread extends Thread {
     // Картинки вставлять через это?
     private Bitmap floor;
     private Bitmap playerHelper;
-    private Bitmap player[];
+    private Bitmap player[] = new Bitmap[8];
     private Bitmap joy;
     private Bitmap joy2;
 
@@ -35,7 +35,13 @@ public class GameThread extends Thread {
         joy = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick);
         joy2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick2);
         playerHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
-        player[0] = Bitmap.createBitmap(playerHelper, 0, 0, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
+
+        // Заполнение массива с персонажем
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 4; i++) {
+                player[j*4+i] = Bitmap.createBitmap(playerHelper, i*playerHelper.getWidth()/4, j*playerHelper.getHeight()/2, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
+            }
+        }
 
         this.surfaceHolder = surfaceHolder;
     }
@@ -65,6 +71,8 @@ public class GameThread extends Thread {
         // Переменные для перемещения персонажа
         int playerPointX, playerPointY, movementX = 0, movementY = 0;
         double movementCo;
+        // Переменная для отслеживания кадра персонажа
+        int frame = 0;
 
         // Регулеровка размера
         scaleP = 3;
@@ -81,7 +89,7 @@ public class GameThread extends Thread {
         // Пригодиться для считывания положения персонажа
         playerPointX = 0;
         playerPointY = 0;
-        movementCo = 1.5;
+        movementCo = 0.5;
 
         while (running) {
 
@@ -102,11 +110,14 @@ public class GameThread extends Thread {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-                    player[0] = Bitmap.createScaledBitmap(player[0], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    for (int i = 0; i < 8; i++) {
+                        player[i] = Bitmap.createScaledBitmap(player[i], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    }
                     joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
                     joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
 
                     canvas.drawARGB(255,0,0,0);
+
                     canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
                     canvas.drawBitmap(joy, jZeroX, rh - jc - jIndent, backgroundPaint);
 
@@ -116,6 +127,9 @@ public class GameThread extends Thread {
 
                         movementX = (int)((towardPointX - (jZeroX + jc / 2)) * movementCo);
                         movementY = (int)((towardPointY - (rh - jc / 2 - jIndent)) * movementCo);
+
+                        frame++;
+                        frame = frame % 8;
 
                         playerPointX += movementX;
                         playerPointY += movementY;
@@ -135,9 +149,10 @@ public class GameThread extends Thread {
 
                     } else {
                         canvas.drawBitmap(joy2, jZeroX + jc / scaleJ2, rh - jc + jc / scaleJ2 - jIndent, backgroundPaint);
+                        frame = 0;
                     }
 
-                    canvas.drawBitmap(player[0], rZeroX + playerPointX, playerPointY, backgroundPaint);
+                    canvas.drawBitmap(player[frame], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                 } finally {
                     surfaceHolder.unlockCanvasAndPost(canvas);
