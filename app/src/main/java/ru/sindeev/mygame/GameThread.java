@@ -89,7 +89,7 @@ public class GameThread extends Thread {
         // Пригодиться для считывания положения персонажа
         playerPointX = 0;
         playerPointY = 0;
-        movementCo = 0.5;
+        movementCo = 0.35;
 
         while (running) {
 
@@ -106,6 +106,11 @@ public class GameThread extends Thread {
             rZeroX = (canvas.getWidth() - rw) / 2;
             jZeroX = rZeroX + jIndent;
 
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+//                e.printStackTrace();
+            }
             if (canvas != null) {
                 try {
                     // Масштабирование
