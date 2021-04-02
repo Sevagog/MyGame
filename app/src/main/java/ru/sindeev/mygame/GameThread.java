@@ -10,47 +10,51 @@ import android.view.SurfaceHolder;
 
 public class GameThread extends Thread {
 
-    // Что это?
     private SurfaceHolder surfaceHolder;
 
-    // Что это?
     private volatile boolean running = true; // флаг для остановки потока
     private Paint backgroundPaint = new Paint();
 
-    // Картинки вставлять через это?
+    // Картинки вставлять через это
     private Bitmap floor;
     private Bitmap playerHelper;
-    private Bitmap player[] = new Bitmap[8];
+    private Bitmap playerHelper2;
+    private Bitmap player[][] = new Bitmap[8][2];
     private Bitmap joy;
     private Bitmap joy2;
 
     private int towardPointX;
     private int towardPointY;
 
-    // Что это?
     public GameThread(Context context, SurfaceHolder surfaceHolder) {
 
-        // Сюда все картинки?
+        // Сюда все картинки
         floor = BitmapFactory.decodeResource(context.getResources(), R.drawable.floor);
         joy = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick);
         joy2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick2);
         playerHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
+        playerHelper2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player_left_side);
 
         // Заполнение массива с персонажем
         for (int j = 0; j < 2; j++) {
             for (int i = 0; i < 4; i++) {
-                player[j*4+i] = Bitmap.createBitmap(playerHelper, i*playerHelper.getWidth()/4, j*playerHelper.getHeight()/2, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
+                player[j*4+i][0] = Bitmap.createBitmap(playerHelper, i*playerHelper.getWidth()/4, j*playerHelper.getHeight()/2, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
+            }
+        }
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 4; i++) {
+                player[j*4+i][1] = Bitmap.createBitmap(playerHelper2, i*playerHelper2.getWidth()/4, j*playerHelper2.getHeight()/2, playerHelper2.getWidth()/4, playerHelper2.getHeight()/2);
             }
         }
 
         this.surfaceHolder = surfaceHolder;
     }
 
-    // Что это?
     public void requestStop() {
         running = false;
     }
 
+    // Переменные для получения координат нажатия
     public void setTowardPoint(int x, int y) {
         towardPointX = x;
         towardPointY = y;
@@ -59,6 +63,8 @@ public class GameThread extends Thread {
     // Тут вся логика
     @Override
     public void run() {
+        // Переменные для положения джойстика
+        int jX, jY;
         // Переменные для поля
         int rw , rh, rZeroX;
         // Переменные для регулеровок размера всего и вся
@@ -72,7 +78,7 @@ public class GameThread extends Thread {
         int playerPointX, playerPointY, movementX = 0, movementY = 0;
         double movementCo;
         // Переменная для отслеживания кадра персонажа
-        int frame = 0;
+        int frame = 0, side = 0;
 
         // Регулеровка размера
         scaleP = 3;
@@ -80,13 +86,13 @@ public class GameThread extends Thread {
         scaleJ2 = 3;
         jIndent = 20;
         // Регулеровка соотношения сторон
-        xRatio = floor.getWidth() / player[0].getWidth();
-        yRatio = floor.getHeight() / player[0].getHeight();
+        xRatio = floor.getWidth() / player[0][0].getWidth();
+        yRatio = floor.getHeight() / player[0][0].getHeight();
 
         backgroundPaint.setFilterBitmap(true);
         backgroundPaint.setDither(true);
 
-        // Пригодиться для считывания положения персонажа
+        // Пригодиться для считывания положения персонажа, для регулеровки скорости
         playerPointX = 0;
         playerPointY = 0;
         movementCo = 0.35;
@@ -111,12 +117,17 @@ public class GameThread extends Thread {
             } catch (InterruptedException e) {
 //                e.printStackTrace();
             }
+
+            // САМА ЛОГИКА ДАЛЬШЕ
+
             if (canvas != null) {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-                    for (int i = 0; i < 8; i++) {
-                        player[i] = Bitmap.createScaledBitmap(player[i], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    for (int j = 0; j < 2; j++) {
+                        for (int i = 0; i < 8; i++) {
+                            player[i][j] = Bitmap.createScaledBitmap(player[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                        }
                     }
                     joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
                     joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
@@ -127,11 +138,26 @@ public class GameThread extends Thread {
                     canvas.drawBitmap(joy, jZeroX, rh - jc - jIndent, backgroundPaint);
 
                     // Проверка, попало ли нажатие на джойстик
-                    if (towardPointX > jZeroX && towardPointX < jZeroX + jc && towardPointY > rh - jc - jIndent && towardPointY < rh - jIndent) {
-                        canvas.drawBitmap(joy2, towardPointX - jc2 / 2, towardPointY - jc2 / 2, backgroundPaint);
+                    if (towardPointX > rZeroX && towardPointX < rZeroX + rw / 2 && towardPointY > rh / 4 && towardPointY < rh) {
 
-                        movementX = (int)((towardPointX - (jZeroX + jc / 2)) * movementCo);
-                        movementY = (int)((towardPointY - (rh - jc / 2 - jIndent)) * movementCo);
+                        jX = towardPointX;
+                        jY = towardPointY;
+
+                        if (jX < jZeroX){
+                            jX = jZeroX;
+                        } else if (jX > jZeroX + jc){
+                            jX = jZeroX + jc;
+                        }
+                        if (jY < rh - jc - jIndent){
+                            jY = rh - jc - jIndent;
+                        } else if (jY > rh - jIndent){
+                            jY = rh - jIndent;
+                        }
+
+                        canvas.drawBitmap(joy2, jX - jc2 / 2, jY - jc2 / 2, backgroundPaint);
+//                      towardPointY < rh - jIndent
+                        movementX = (int)((jX - (jZeroX + jc / 2)) * movementCo);
+                        movementY = (int)((jY - (rh - jc / 2 - jIndent)) * movementCo);
 
                         frame++;
                         frame = frame % 8;
@@ -139,11 +165,17 @@ public class GameThread extends Thread {
                         playerPointX += movementX;
                         playerPointY += movementY;
 
-                        if (playerPointX > rw - player[0].getWidth()){
-                            playerPointX = rw - player[0].getWidth();
+                        if (movementX > 0){
+                            side = 0;
+                        } else if (movementX < 0){
+                            side = 1;
                         }
-                        if (playerPointY > rh - player[0].getHeight()){
-                            playerPointY = rh - player[0].getHeight();
+
+                        if (playerPointX > rw - player[0][0].getWidth()){
+                            playerPointX = rw - player[0][0].getWidth();
+                        }
+                        if (playerPointY > rh - player[0][0].getHeight()){
+                            playerPointY = rh - player[0][0].getHeight();
                         }
                         if (playerPointX < 0){
                             playerPointX = 0;
@@ -157,7 +189,7 @@ public class GameThread extends Thread {
                         frame = 0;
                     }
 
-                    canvas.drawBitmap(player[frame], rZeroX + playerPointX, playerPointY, backgroundPaint);
+                    canvas.drawBitmap(player[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                 } finally {
                     surfaceHolder.unlockCanvasAndPost(canvas);
