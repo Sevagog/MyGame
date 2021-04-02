@@ -155,7 +155,6 @@ public class GameThread extends Thread {
                         }
 
                         canvas.drawBitmap(joy2, jX - jc2 / 2, jY - jc2 / 2, backgroundPaint);
-//                      towardPointY < rh - jIndent
                         movementX = (int)((jX - (jZeroX + jc / 2)) * movementCo);
                         movementY = (int)((jY - (rh - jc / 2 - jIndent)) * movementCo);
 
