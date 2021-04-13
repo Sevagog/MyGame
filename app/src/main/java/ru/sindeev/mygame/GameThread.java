@@ -17,11 +17,15 @@ public class GameThread extends Thread {
 
     // Картинки вставлять через это
     private Bitmap floor;
+    private Bitmap enemy[] = new Bitmap[9];
+    private Bitmap enemyHelper;
     private Bitmap playerHelper;
     private Bitmap playerHelper2;
     private Bitmap player[][] = new Bitmap[8][2];
     private Bitmap joy;
     private Bitmap joy2;
+    private Bitmap l_b;
+    private Bitmap r_b;
 
     private int towardPointX;
     private int towardPointY;
@@ -30,9 +34,12 @@ public class GameThread extends Thread {
 
         // Сюда все картинки
         floor = BitmapFactory.decodeResource(context.getResources(), R.drawable.floor);
+        l_b = BitmapFactory.decodeResource(context.getResources(), R.drawable.l);
+        r_b = BitmapFactory.decodeResource(context.getResources(), R.drawable.r);
         joy = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick);
         joy2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick2);
         playerHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
+        enemyHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy);
         playerHelper2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player_left_side);
 
         // Заполнение массива с персонажем
@@ -44,6 +51,16 @@ public class GameThread extends Thread {
         for (int j = 0; j < 2; j++) {
             for (int i = 0; i < 4; i++) {
                 player[j*4+i][1] = Bitmap.createBitmap(playerHelper2, i*playerHelper2.getWidth()/4, j*playerHelper2.getHeight()/2, playerHelper2.getWidth()/4, playerHelper2.getHeight()/2);
+            }
+        }
+
+        // Заполнение массива с противником
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 5; i++) {
+                if (j == 1 && i == 4){
+                    continue;
+                }
+                enemy[j*5+i] = Bitmap.createBitmap(enemyHelper, i*enemyHelper.getWidth()/5, j*enemyHelper.getHeight()/2, enemyHelper.getWidth()/5, enemyHelper.getHeight()/2);
             }
         }
 
@@ -68,22 +85,23 @@ public class GameThread extends Thread {
         // Переменные для поля
         int rw , rh, rZeroX;
         // Переменные для регулеровок размера всего и вся
-        int xRatio, yRatio, scaleP, scaleJ, scaleJ2;
+        int xRatio, yRatio, scaleP, scaleJ, scaleJ2, scaleJ3;
         // Переменные для подсчета размера поля
         double help, help2;
         // Переменные для подсчета размера и положения джойстиков
-        int jc, jc2;
+        int jc, jc2, jc3;
         int jZeroX, jIndent;
         // Переменные для перемещения персонажа
         int playerPointX, playerPointY, movementX = 0, movementY = 0;
         double movementCo;
         // Переменная для отслеживания кадра персонажа
-        int frame = 0, side = 0;
+        int frame = 0, side = 0, enemyFrame = 0;
 
         // Регулеровка размера
         scaleP = 3;
         scaleJ = 4;
         scaleJ2 = 3;
+        scaleJ3 = 2;
         jIndent = 20;
         // Регулеровка соотношения сторон
         xRatio = floor.getWidth() / player[0][0].getWidth();
@@ -108,6 +126,7 @@ public class GameThread extends Thread {
 
             jc = rh / scaleJ;
             jc2 = jc / scaleJ2;
+            jc3 = jc / scaleJ3;
 
             rZeroX = (canvas.getWidth() - rw) / 2;
             jZeroX = rZeroX + jIndent;
@@ -129,6 +148,11 @@ public class GameThread extends Thread {
                             player[i][j] = Bitmap.createScaledBitmap(player[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
                         }
                     }
+                    for (int i = 0; i < 9; i++) {
+                        enemy[i] = Bitmap.createScaledBitmap(enemy[i], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    }
+                    l_b = Bitmap.createScaledBitmap(l_b, jc3, jc3, true);
+                    r_b = Bitmap.createScaledBitmap(r_b, jc3, jc3, true);
                     joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
                     joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
 
@@ -137,8 +161,11 @@ public class GameThread extends Thread {
                     canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
                     canvas.drawBitmap(joy, jZeroX, rh - jc - jIndent, backgroundPaint);
 
+                    canvas.drawBitmap(l_b, rw  + rZeroX - jIndent - l_b.getWidth()*2, rh - l_b.getHeight() - jIndent, backgroundPaint);
+                    canvas.drawBitmap(r_b, rw  + rZeroX - jIndent - r_b.getWidth(), rh - jIndent - r_b.getHeight()*2, backgroundPaint);
+
                     // Проверка, попало ли нажатие на джойстик
-                    if (towardPointX > rZeroX && towardPointX < rZeroX + rw / 2 && towardPointY > rh / 4 && towardPointY < rh) {
+                    if (towardPointX > 0 && towardPointX < rZeroX + rw / 2 && towardPointY > 0 && towardPointY < rh) {
 
                         jX = towardPointX;
                         jY = towardPointY;
@@ -188,6 +215,10 @@ public class GameThread extends Thread {
                         frame = 0;
                     }
 
+                    enemyFrame++;
+                    enemyFrame = enemyFrame % 9;
+
+                    canvas.drawBitmap(enemy[enemyFrame],1000,100, backgroundPaint);
                     canvas.drawBitmap(player[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                 } finally {
