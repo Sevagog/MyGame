@@ -114,7 +114,7 @@ public class GameThread extends Thread {
         int enemyX = 1000, enemyY = 100;
 
         // Регулеровка размера
-        scaleP = 3;
+        scaleP = 1;
         scaleJ = 4;
         scaleJ2 = 3;
         scaleJ3 = 2;
