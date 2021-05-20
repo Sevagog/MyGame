@@ -10,7 +10,7 @@ import android.view.SurfaceHolder;
 
 import java.util.Random;
 
-
+// 123
 public class GameThread extends Thread {
 
     private SurfaceHolder surfaceHolder;
