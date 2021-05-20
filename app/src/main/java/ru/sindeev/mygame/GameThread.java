@@ -28,19 +28,16 @@ public class GameThread extends Thread {
 
     // Картинки вставлять через это
     private Bitmap floor;
+    private Bitmap rock;
     private Bitmap enemy1[][] = new Bitmap[11][2];
-    private Bitmap enemy1Helper;
-    private Bitmap playerHelper;
-    private Bitmap playerHelper2;
     private Bitmap player[][] = new Bitmap[8][2];
     private Bitmap joy;
     private Bitmap joy2;
     private Bitmap l_b;
     private Bitmap l_hit[][] = new Bitmap[4][2];
     private Bitmap r_hit[][] = new Bitmap[4][2];
-    private Bitmap l_hit_helper;
-    private Bitmap r_hit_helper;
     private Bitmap r_b;
+    private Bitmap helper;
 
     private int towardPointX;
     private int towardPointY;
@@ -49,64 +46,61 @@ public class GameThread extends Thread {
 
         // Сюда все картинки
         floor = BitmapFactory.decodeResource(context.getResources(), R.drawable.floor);
+        rock = BitmapFactory.decodeResource(context.getResources(), R.drawable.rock);
         l_b = BitmapFactory.decodeResource(context.getResources(), R.drawable.l);
         r_b = BitmapFactory.decodeResource(context.getResources(), R.drawable.r);
         joy = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick);
         joy2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.joystick2);
-        playerHelper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
-        l_hit_helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.l_hit);
-        r_hit_helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.r_hit);
-        enemy1Helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy);
-        playerHelper2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player_left_side);
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player);
 
         // Заполнение массива с персонажем
         for (int j = 0; j < 2; j++) {
             for (int i = 0; i < 4; i++) {
-                player[j*4+i][0] = Bitmap.createBitmap(playerHelper, i*playerHelper.getWidth()/4, j*playerHelper.getHeight()/2, playerHelper.getWidth()/4, playerHelper.getHeight()/2);
+                player[j*4+i][0] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/2, helper.getWidth()/4, helper.getHeight()/2);
             }
         }
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.fur_player_left_side);
         for (int j = 0; j < 2; j++) {
             for (int i = 0; i < 4; i++) {
-                player[j*4+i][1] = Bitmap.createBitmap(playerHelper2, i*playerHelper2.getWidth()/4, j*playerHelper2.getHeight()/2, playerHelper2.getWidth()/4, playerHelper2.getHeight()/2);
+                player[j*4+i][1] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/2, helper.getWidth()/4, helper.getHeight()/2);
             }
         }
-
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.l_hit);
         // Удар левой ногой
         for (int i = 0; i < 4; i++){
-            l_hit[i][0] = Bitmap.createBitmap(l_hit_helper, i*l_hit_helper.getWidth()/4, 0, l_hit_helper.getWidth()/4, l_hit_helper.getHeight());
+            l_hit[i][0] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, 0, helper.getWidth()/4, helper.getHeight());
         }
-        l_hit_helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.l_hit_left_side);
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.l_hit_left_side);
         for (int i = 0; i < 4; i++){
-            l_hit[i][1] = Bitmap.createBitmap(l_hit_helper, i*l_hit_helper.getWidth()/4, 0, l_hit_helper.getWidth()/4, l_hit_helper.getHeight());
+            l_hit[i][1] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, 0, helper.getWidth()/4, helper.getHeight());
         }
-
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.r_hit);
         // Удар правой ногой
         for (int i = 0; i < 4; i++){
-            r_hit[i][0] = Bitmap.createBitmap(r_hit_helper, i*r_hit_helper.getWidth()/4, 0, r_hit_helper.getWidth()/4, r_hit_helper.getHeight());
+            r_hit[i][0] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, 0, helper.getWidth()/4, helper.getHeight());
         }
-        r_hit_helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.r_hit_left_side);
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.r_hit_left_side);
         for (int i = 0; i < 4; i++){
-            r_hit[i][1] = Bitmap.createBitmap(r_hit_helper, i*r_hit_helper.getWidth()/4, 0, r_hit_helper.getWidth()/4, r_hit_helper.getHeight());
+            r_hit[i][1] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, 0, helper.getWidth()/4, helper.getHeight());
         }
-
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy);
         // Заполнение массива с противником
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 4; i++) {
                 if (j == 2 && i == 3){
                     continue;
                 }
-                enemy1[j*4+i][0] = Bitmap.createBitmap(enemy1Helper, i*enemy1Helper.getWidth()/4, j*enemy1Helper.getHeight()/3, enemy1Helper.getWidth()/4, enemy1Helper.getHeight()/3);
+                enemy1[j*4+i][0] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/3, helper.getWidth()/4, helper.getHeight()/3);
             }
         }
-
-        enemy1Helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy_left_side);
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy_left_side);
         // Заполнение массива с противником
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 4; i++) {
                 if (j == 2 && i == 3){
                     continue;
                 }
-                enemy1[j*4+i][1] = Bitmap.createBitmap(enemy1Helper, i*enemy1Helper.getWidth()/4, j*enemy1Helper.getHeight()/3, enemy1Helper.getWidth()/4, enemy1Helper.getHeight()/3);
+                enemy1[j*4+i][1] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/3, helper.getWidth()/4, helper.getHeight()/3);
             }
         }
 
@@ -126,6 +120,7 @@ public class GameThread extends Thread {
     // Тут вся логика
     @Override
     public void run() {
+        Random random = new Random();
         // Переменные для положения джойстика
         int jX, jY;
         // Переменные для регулеровок размера всего и вся
@@ -139,6 +134,8 @@ public class GameThread extends Thread {
         // Переменные для перемещения персонажа
         int movementX = 0, movementY;
         double movementCo;
+        // Переменные для камня...
+        int rockX = 0, rockY = 0;
         // Переменные для отслеживания кадра персонажа
         int frame = 0, side = 0, enemyFrame = 0, isHit = 0, hitHelper = 0, noHitTimer = 0;
 
@@ -185,6 +182,12 @@ public class GameThread extends Thread {
                 // Создание черных полос по краям
                 rZeroX = (canvas.getWidth() - rw) / 2;
                 jZeroX = rZeroX + jIndent;
+
+                playerPointX = rZeroX + rw / 2;
+                playerPointY = rh / 3;
+
+                rockX = random.nextInt(rw - 100);
+                rockY = random.nextInt(rh);
             }
 
             // Замедление работы
@@ -199,6 +202,7 @@ public class GameThread extends Thread {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
+                    rock = Bitmap.createScaledBitmap(rock, rw / 40, rh / 20, true);
                     for (int j = 0; j < 2; j++) {
                         for (int i = 0; i < 8; i++) {
                             player[i][j] = Bitmap.createScaledBitmap(player[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
@@ -227,11 +231,12 @@ public class GameThread extends Thread {
                     // Рисуем то, что не собираемся перерисовывать (фон, кнопки)
                     canvas.drawARGB(255, 0, 0, 0);
                     canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
+                    canvas.drawBitmap(rock, rZeroX + rockX, rockY, backgroundPaint);
                     canvas.drawBitmap(joy, jZeroX, rh - jc - jIndent, backgroundPaint);
                     canvas.drawBitmap(l_b, rw + rZeroX - jIndent - l_b.getWidth() * 2, rh - l_b.getHeight() - jIndent, backgroundPaint);
                     canvas.drawBitmap(r_b, rw + rZeroX - jIndent - r_b.getWidth(), rh - jIndent - r_b.getHeight() * 2, backgroundPaint);
 
-                    if (enemies[0] == null) {
+                    if (enemies[0] == null || enemies[0].health == 0) {
                         CreateEnemy(1,0);
                     }
 
@@ -284,7 +289,7 @@ public class GameThread extends Thread {
                             }
 
                             // Рисуем джойстик, настраиваем переменные для смещения персонажа
-                            canvas.drawBitmap(joy2, jX - jc2 / 2, jY - jc2 / 2, backgroundPaint);
+                            canvas.drawBitmap(joy2, (int)(jX - jc2 / 2), (int)(jY - jc2 / 2), backgroundPaint);
                             movementX = (int) ((jX - (jZeroX + jc / 2)) * movementCo);
                             movementY = (int) ((jY - (rh - jc / 2 - jIndent)) * movementCo);
 
@@ -319,7 +324,7 @@ public class GameThread extends Thread {
 
                         } else {
                             // Если не трогали джойстик - рисуем его в центре, обнуляем кадр движения
-                            canvas.drawBitmap(joy2, jZeroX + jc / scaleJ2, rh - jc + jc / scaleJ2 - jIndent, backgroundPaint);
+                            canvas.drawBitmap(joy2, (int)(jZeroX + jc / scaleJ2), (int)(rh - jc + jc / scaleJ2 - jIndent), backgroundPaint);
                             frame = 0;
                         }
 
@@ -329,7 +334,7 @@ public class GameThread extends Thread {
                         // А если мы бьем
                     } else if (isHit == 1){
                         // Рисуем джойстик в центре
-                        canvas.drawBitmap(joy2, jZeroX + jc / scaleJ2, rh - jc + jc / scaleJ2 - jIndent, backgroundPaint);
+                        canvas.drawBitmap(joy2, (int)(jZeroX + jc / scaleJ2), (int)(rh - jc + jc / scaleJ2 - jIndent), backgroundPaint);
 
                         // Сначала идем в 1 сторону, потом в другую по кадрам. Я не знаю, как это можно реализовать лучше
                         if (hitHelper < 4){
@@ -400,7 +405,7 @@ public class GameThread extends Thread {
                     } else if (isHit == 2){
 
                         // Рисуем джойстик в центре
-                        canvas.drawBitmap(joy2, jZeroX + jc / scaleJ2, rh - jc + jc / scaleJ2 - jIndent, backgroundPaint);
+                        canvas.drawBitmap(joy2, (int)(jZeroX + jc / scaleJ2), (int)(rh - jc + jc / scaleJ2 - jIndent), backgroundPaint);
 
                         // Сначала идем в 1 сторону, потом в другую по кадрам. Я не знаю, как это можно реализовать лучше
                         if (hitHelper < 4){
@@ -538,20 +543,36 @@ public class GameThread extends Thread {
             }
 
             while (movePoint > 0){
-                if (roadX > roadY) {
-                    if (enemies[0].positionX > rZeroX + playerPointX) {
-                        enemies[0].positionX -= 1;
-                    } else {
-                        enemies[0].positionX += 1;
-                    }
-                    movePoint -= 1;
+                if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX > rZeroX + playerPointX && enemies[0].positionY > playerPointY){
+                    enemies[0].positionX -= 10;
+                    enemies[0].positionY -= 10;
+                    movePoint -= 20;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX > rZeroX + playerPointX && enemies[0].positionY < playerPointY){
+                    enemies[0].positionX -= 10;
+                    enemies[0].positionY += 10;
+                    movePoint -= 20;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX < rZeroX + playerPointX && enemies[0].positionY > playerPointY){
+                    enemies[0].positionX += 10;
+                    enemies[0].positionY -= 10;
+                    movePoint -= 20;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX < rZeroX + playerPointX && enemies[0].positionY < playerPointY){
+                    enemies[0].positionX += 10;
+                    enemies[0].positionY += 10;
+                    movePoint -= 20;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY < rh / 20 && enemies[0].positionX > rZeroX + playerPointX){
+                    enemies[0].positionX -= 10;
+                    movePoint -= 10;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY < rh / 20 && enemies[0].positionX < rZeroX + playerPointX){
+                    enemies[0].positionX += 10;
+                    movePoint -= 10;
+                } else if (roadX < roadY + 10 && roadY >= rh / 20 && enemies[0].positionY > playerPointY){
+                    enemies[0].positionY -= 10;
+                    movePoint -= 10;
+                } else if (roadX < roadY + 10 && roadY >= rh / 20 && enemies[0].positionY < playerPointY){
+                    enemies[0].positionY += 10;
+                    movePoint -= 10;
                 } else {
-                    if (enemies[0].positionY > playerPointY){
-                        enemies[0].positionY -= 1;
-                    } else {
-                        enemies[0].positionY += 1;
-                    }
-                    movePoint -= 1;
+                    movePoint = 0;
                 }
             }
         }
