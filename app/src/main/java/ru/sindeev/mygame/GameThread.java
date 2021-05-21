@@ -30,6 +30,7 @@ public class GameThread extends Thread {
     private Bitmap floor;
     private Bitmap rock;
     private Bitmap enemy1[][] = new Bitmap[11][2];
+    private Bitmap enemyAttack[][] = new Bitmap[7][2];
     private Bitmap player[][] = new Bitmap[8][2];
     private Bitmap joy;
     private Bitmap joy2;
@@ -101,6 +102,24 @@ public class GameThread extends Thread {
                     continue;
                 }
                 enemy1[j*4+i][1] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/3, helper.getWidth()/4, helper.getHeight()/3);
+            }
+        }
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy_attack);
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 4; i++) {
+                if (j == 1 && i == 3){
+                    continue;
+                }
+                enemyAttack[j*4+i][0] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/2, helper.getWidth()/4, helper.getHeight()/2);
+            }
+        }
+        helper = BitmapFactory.decodeResource(context.getResources(), R.drawable.first_enemy_attack_l);
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 4; i++) {
+                if (j == 1 && i == 3){
+                    continue;
+                }
+                enemyAttack[j*4+i][1] = Bitmap.createBitmap(helper, i*helper.getWidth()/4, j*helper.getHeight()/2, helper.getWidth()/4, helper.getHeight()/2);
             }
         }
 
@@ -214,6 +233,11 @@ public class GameThread extends Thread {
                         }
                     }
                     for (int j = 0; j < 2; j++) {
+                        for (int i = 0; i < 7; i++) {
+                            enemyAttack[i][j] = Bitmap.createScaledBitmap(enemyAttack[i][j], (int)((rw / xRatio) / scaleP * 1.5), (rh / yRatio) / scaleP, true);
+                        }
+                    }
+                    for (int j = 0; j < 2; j++) {
                         for (int i = 0; i < 4; i++) {
                             l_hit[i][j] = Bitmap.createScaledBitmap(l_hit[i][j], (int)((rw / xRatioH) / scaleLHit), (int)((rw / yRatioH) / scaleLHit), true);
                         }
@@ -238,6 +262,9 @@ public class GameThread extends Thread {
 
                     if (enemies[0] == null || enemies[0].health == 0) {
                         CreateEnemy(1,0);
+                    }
+                    if (enemies[1] == null || enemies[1].health == 0) {
+                        CreateEnemy(1,1);
                     }
 
                     // Увеличиваем кадр противника
@@ -395,7 +422,7 @@ public class GameThread extends Thread {
                         canvas.drawBitmap(l_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                         // Выходим из удара
-                        if (hitHelper == 6 || playerPointX < rZeroX  || playerPointX > rZeroX + rw){
+                        if (hitHelper == 6){
                             isHit = 0;
                             towardPointY = 0;
                             towardPointX = 0;
@@ -466,7 +493,7 @@ public class GameThread extends Thread {
                         canvas.drawBitmap(r_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                         // Выходим из удара
-                        if (hitHelper == 6 || playerPointX < rZeroX  || playerPointX > rZeroX + rw){
+                        if (hitHelper == 6){
                             isHit = 0;
                             towardPointY = 0;
                             towardPointX = 0;
@@ -475,10 +502,17 @@ public class GameThread extends Thread {
                         hitHelper++;
                     }
 
-                    MoveEnemy();
+                    for (int i = 0; i < 5; i++) {
 
-                    // Рисуем врага, тут что-то надо поменять, чтоб враг не всегда был сверху нашего персонажа
-                    DrawEnemy(canvas, enemyFrame);
+                        if (enemies[i] == null){
+                            continue;
+                        }
+
+                        if (!enemies[i].isAttack){
+                            MoveEnemy(i);
+                        }
+                        DrawEnemy(canvas, enemyFrame, i);
+                    }
 
                 } finally{
                     surfaceHolder.unlockCanvasAndPost(canvas);
@@ -487,53 +521,75 @@ public class GameThread extends Thread {
         }
     }
 
-    void CreateEnemy(int id, int num){
+    void CreateEnemy(int id, int en){
         int min = rZeroX;
         int max = rw / 3;
         int diff = max - min;
         Random random = new Random();
-        enemies[num] = new Enemy();
+        enemies[en] = new Enemy();
         switch (id){
             case 1:
-                enemies[num].speed = rw / 250;
-                enemies[num].attackType = 0;
-                enemies[num].health = 1;
+                enemies[en].speed = rw / 250;
+                enemies[en].attackType = 0;
+                enemies[en].health = 1;
+                enemies[en].isAttack = false;
+                enemies[en].attackFrame = 0;
                 break;
             case 2:
-                enemies[num].speed = 0;
-                enemies[num].attackType = 0;
-                enemies[num].health = 2;
+                enemies[en].speed = 0;
+                enemies[en].attackType = 1;
+                enemies[en].health = 2;
+                enemies[en].isAttack = false;
+                enemies[en].attackFrame = 0;
                 break;
             case 3:
-                enemies[num].speed = 0;
-                enemies[num].attackType = 0;
-                enemies[num].health = 3;
+                enemies[en].speed = 0;
+                enemies[en].attackType = 0;
+                enemies[en].health = 3;
+                enemies[en].isAttack = false;
+                enemies[en].attackFrame = 0;
                 break;
         }
-        enemies[num].positionX = min + random.nextInt(diff);
-        enemies[num].positionY = random.nextInt(rh - enemy1[0][0].getHeight());
+        enemies[en].positionX = min + random.nextInt(diff);
+        enemies[en].positionY = random.nextInt(rh - enemy1[0][0].getHeight());
     }
 
-    void DrawEnemy(Canvas canvas,int enemyFrame){
-        if (enemies[0] != null){
-            if (enemies[0].positionX + enemy1[0][0].getWidth() / 2 < rZeroX + playerPointX + player[0][0].getWidth() / 2){
+    void DrawEnemy(Canvas canvas, int enemyFrame, int en){
+        if (enemies[en] != null && enemies[en].health > 0){
+            if (enemies[en].positionX + enemy1[0][0].getWidth() / 2 < rZeroX + playerPointX + player[0][0].getWidth() / 2){
                 enemySide = 0;
             } else {
                 enemySide = 1;
             }
-            canvas.drawBitmap(enemy1[enemyFrame % 11][enemySide], enemies[0].positionX, enemies[0].positionY, backgroundPaint);
+        }
+        if (enemies[en].isAttack){
+            if (enemySide == 1){
+                canvas.drawBitmap(enemyAttack[enemies[en].attackFrame][enemySide], (int)(enemies[en].positionX - rw / 25), enemies[en].positionY, backgroundPaint);
+            } else {
+                canvas.drawBitmap(enemyAttack[enemies[en].attackFrame][enemySide], enemies[en].positionX, enemies[en].positionY, backgroundPaint);
+            }
+            // Замедление удара, он слишком быстрый
+            if (enemyFrame % 2 == 0) {
+                enemies[en].attackFrame++;
+            }
+            if (enemies[en].attackFrame == 6){
+                enemies[en].attackFrame = 0;
+                enemies[en].isAttack = false;
+            }
+        } else {
+            canvas.drawBitmap(enemy1[enemyFrame % 11][enemySide], enemies[en].positionX, enemies[en].positionY, backgroundPaint);
         }
     }
 
-    void MoveEnemy(){
+    void MoveEnemy(int en){
         int roadX, roadY, movePoint;
 
-        if (enemies[0] != null){
+        if (enemies[en] != null && enemies[en].health > 0){
 
-            roadX = enemies[0].positionX - rZeroX - playerPointX;
-            roadY = enemies[0].positionY - playerPointY;
+            roadX = enemies[en].positionX - rZeroX - playerPointX;
+            roadY = enemies[en].positionY - playerPointY;
 
-            movePoint = enemies[0].speed;
+            movePoint = enemies[en].speed;
 
             if (roadX < 0){
                 roadX *= -1;
@@ -543,38 +599,49 @@ public class GameThread extends Thread {
             }
 
             while (movePoint > 0){
-                if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX > rZeroX + playerPointX && enemies[0].positionY > playerPointY){
-                    enemies[0].positionX -= 10;
-                    enemies[0].positionY -= 10;
+                if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[en].positionX > rZeroX + playerPointX && enemies[en].positionY > playerPointY){
+                    enemies[en].positionX -= 10;
+                    enemies[en].positionY -= 10;
                     movePoint -= 20;
-                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX > rZeroX + playerPointX && enemies[0].positionY < playerPointY){
-                    enemies[0].positionX -= 10;
-                    enemies[0].positionY += 10;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[en].positionX > rZeroX + playerPointX && enemies[en].positionY < playerPointY){
+                    enemies[en].positionX -= 10;
+                    enemies[en].positionY += 10;
                     movePoint -= 20;
-                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX < rZeroX + playerPointX && enemies[0].positionY > playerPointY){
-                    enemies[0].positionX += 10;
-                    enemies[0].positionY -= 10;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[en].positionX < rZeroX + playerPointX && enemies[en].positionY > playerPointY){
+                    enemies[en].positionX += 10;
+                    enemies[en].positionY -= 10;
                     movePoint -= 20;
-                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[0].positionX < rZeroX + playerPointX && enemies[0].positionY < playerPointY){
-                    enemies[0].positionX += 10;
-                    enemies[0].positionY += 10;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY >= rh / 20 && enemies[en].positionX < rZeroX + playerPointX && enemies[en].positionY < playerPointY){
+                    enemies[en].positionX += 10;
+                    enemies[en].positionY += 10;
                     movePoint -= 20;
-                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY < rh / 20 && enemies[0].positionX > rZeroX + playerPointX){
-                    enemies[0].positionX -= 10;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY < rh / 20 && enemies[en].positionX > rZeroX + playerPointX){
+                    enemies[en].positionX -= 10;
                     movePoint -= 10;
-                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY < rh / 20 && enemies[0].positionX < rZeroX + playerPointX){
-                    enemies[0].positionX += 10;
+                } else if (roadX >= roadY + 10 && roadX >= rw / 20 && roadY < rh / 20 && enemies[en].positionX < rZeroX + playerPointX){
+                    enemies[en].positionX += 10;
                     movePoint -= 10;
-                } else if (roadX < roadY + 10 && roadY >= rh / 20 && enemies[0].positionY > playerPointY){
-                    enemies[0].positionY -= 10;
+                } else if (roadX < roadY + 10 && roadY >= rh / 20 && enemies[en].positionY > playerPointY){
+                    enemies[en].positionY -= 10;
                     movePoint -= 10;
-                } else if (roadX < roadY + 10 && roadY >= rh / 20 && enemies[0].positionY < playerPointY){
-                    enemies[0].positionY += 10;
+                } else if (roadX < roadY + 10 && roadY >= rh / 20 && enemies[en].positionY < playerPointY){
+                    enemies[en].positionY += 10;
                     movePoint -= 10;
+                } else if (roadX < rw / 20 && roadY < rh / 20 && enemies[en].attackType == 0){
+                    enemies[en].isAttack = true;
+                    movePoint = 0;
                 } else {
                     movePoint = 0;
                 }
             }
         }
     }
+/*
+    void EnemyAttack(int en){
+        if (enemies[en].attackType == 0){
+            enemies[en].attackFrame++;
+            enemies[en].attackFrame %= 7;
+        }
+    }
+*/
 }

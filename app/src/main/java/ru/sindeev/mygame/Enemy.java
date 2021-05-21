@@ -7,5 +7,7 @@ public class Enemy {
     int health;
     int positionX;
     int positionY;
+    int attackFrame;
+    boolean isAttack;
 
 }
