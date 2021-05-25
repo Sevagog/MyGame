@@ -151,12 +151,15 @@ public class GameThread extends Thread {
         int jc = 0, jc2 = 0, jc3 = 0;
         int jZeroX = 0, jIndent;
         // Переменные для перемещения персонажа
-        int movementX = 0, movementY;
+        int movementX = 0, movementY, CenterX, CenterY;
         double movementCo;
         // Переменные для камня...
         int rockX = 0, rockY = 0;
         // Переменные для отслеживания кадра персонажа
-        int frame = 0, side = 0, enemyFrame = 0, isHit = 0, hitHelper = 0, noHitTimer = 0;
+        int frame = 0, side = 0, enemyFrame = 0, hitHelper = 0, noHitTimer = 0;
+        byte  isHit = 0;
+        // Счет
+        int SCORE = 0;
 
         // Регулеровка размера
         scaleP = 1;
@@ -221,7 +224,7 @@ public class GameThread extends Thread {
                 try {
                     // Масштабирование
                     floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-                    rock = Bitmap.createScaledBitmap(rock, rw / 40, rh / 20, true);
+                    rock = Bitmap.createScaledBitmap(rock, rw / 30, rh / 20, true);
                     for (int j = 0; j < 2; j++) {
                         for (int i = 0; i < 8; i++) {
                             player[i][j] = Bitmap.createScaledBitmap(player[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
@@ -422,13 +425,22 @@ public class GameThread extends Thread {
                         canvas.drawBitmap(l_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                         // Выходим из удара
-                        if (hitHelper == 6){
+                        if (hitHelper == 6 || playerPointX < 0 || playerPointX > rw){
                             isHit = 0;
                             towardPointY = 0;
                             towardPointX = 0;
                         }
 
                         hitHelper++;
+
+                        CenterX = playerPointX + rZeroX + player[0][0].getWidth() / 2;
+                        CenterY = playerPointY + player[0][0].getHeight() / 2;
+                        for (int i = 0; i < 2; i++) {
+                            if (CenterX < enemies[i].positionX + enemy1[0][0].getWidth() && CenterX > enemies[i].positionX && CenterY < enemies[i].positionY + enemy1[0][0].getHeight() && CenterY > enemies[i].positionY){
+                                enemies[i].health--;
+                            }
+                        }
+
                     } else if (isHit == 2){
 
                         // Рисуем джойстик в центре
@@ -493,13 +505,21 @@ public class GameThread extends Thread {
                         canvas.drawBitmap(r_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                         // Выходим из удара
-                        if (hitHelper == 6){
+                        if (hitHelper == 6 || playerPointX < 0 || playerPointX > rw){
                             isHit = 0;
                             towardPointY = 0;
                             towardPointX = 0;
                         }
 
                         hitHelper++;
+
+                        CenterX = playerPointX + rZeroX + player[0][0].getWidth() / 2;
+                        CenterY = playerPointY + player[0][0].getHeight() / 2;
+                        for (int i = 0; i < 2; i++) {
+                            if (CenterX < enemies[i].positionX + enemy1[0][0].getWidth() && CenterX > enemies[i].positionX && CenterY < enemies[i].positionY + enemy1[0][0].getHeight() && CenterY > enemies[i].positionY){
+                                enemies[i].health--;
+                            }
+                        }
                     }
 
                     for (int i = 0; i < 5; i++) {
@@ -511,7 +531,7 @@ public class GameThread extends Thread {
                         if (!enemies[i].isAttack){
                             MoveEnemy(i);
                         }
-                        DrawEnemy(canvas, enemyFrame, i);
+                        DrawEnemy(canvas, enemyFrame, i, isHit);
                     }
 
                 } finally{
@@ -554,7 +574,12 @@ public class GameThread extends Thread {
         enemies[en].positionY = random.nextInt(rh - enemy1[0][0].getHeight());
     }
 
-    void DrawEnemy(Canvas canvas, int enemyFrame, int en){
+    void DrawEnemy(Canvas canvas, int enemyFrame, int en, byte isHit){
+        int CenterX, CenterY;
+
+        CenterX = playerPointX + rZeroX + player[0][0].getWidth() / 2;
+        CenterY = playerPointY + player[0][0].getHeight() / 2;
+
         if (enemies[en] != null && enemies[en].health > 0){
             if (enemies[en].positionX + enemy1[0][0].getWidth() / 2 < rZeroX + playerPointX + player[0][0].getWidth() / 2){
                 enemySide = 0;
@@ -568,17 +593,25 @@ public class GameThread extends Thread {
             } else {
                 canvas.drawBitmap(enemyAttack[enemies[en].attackFrame][enemySide], enemies[en].positionX, enemies[en].positionY, backgroundPaint);
             }
-            // Замедление удара, он слишком быстрый
-            if (enemyFrame % 2 == 0) {
-                enemies[en].attackFrame++;
+
+            if ((enemies[en].attackFrame == 2 || enemies[en].attackFrame == 3) && isHit == 0 && (CenterX < enemies[en].positionX + enemyAttack[0][0].getWidth() && CenterX > enemies[en].positionX - rw / 25 && CenterY < enemies[en].positionY + enemyAttack[0][0].getHeight() && CenterY > enemies[en].positionY)){
+                YouAreDead();
             }
+
             if (enemies[en].attackFrame == 6){
                 enemies[en].attackFrame = 0;
                 enemies[en].isAttack = false;
             }
+
+            enemies[en].attackFrame++;
+
         } else {
             canvas.drawBitmap(enemy1[enemyFrame % 11][enemySide], enemies[en].positionX, enemies[en].positionY, backgroundPaint);
         }
+    }
+
+    void YouAreDead(){
+        Log.i("YouAreDead", "YouAreDead");
     }
 
     void MoveEnemy(int en){
@@ -636,12 +669,4 @@ public class GameThread extends Thread {
             }
         }
     }
-/*
-    void EnemyAttack(int en){
-        if (enemies[en].attackType == 0){
-            enemies[en].attackFrame++;
-            enemies[en].attackFrame %= 7;
-        }
-    }
-*/
 }
