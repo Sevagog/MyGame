@@ -1,7 +1,6 @@
 package ru.sindeev.mygame;
 
 public class Enemy {
-
     int speed;
     int attackType;
     int health;
@@ -9,5 +8,4 @@ public class Enemy {
     int positionY;
     int attackFrame;
     boolean isAttack;
-
 }

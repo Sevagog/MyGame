@@ -10,10 +10,10 @@ import android.view.SurfaceHolder;
 
 import java.util.Random;
 
-// 123
 public class GameThread extends Thread {
 
     private SurfaceHolder surfaceHolder;
+    private Canvas canvas;
 
     private volatile boolean running = true; // флаг для остановки потока
     private Paint backgroundPaint = new Paint();
@@ -23,7 +23,6 @@ public class GameThread extends Thread {
 
     // Переменные для поля
     private int rZeroX = 0, rw = 0, rh = 0;
-    //
     private int  enemySide = 0, playerPointX = 0, playerPointY = 0;
 
     // Картинки вставлять через это
@@ -148,7 +147,7 @@ public class GameThread extends Thread {
         // Переменные для подсчета размера поля
         double help, help2;
         // Переменные для подсчета размера и положения джойстиков
-        int jc = 0, jc2 = 0, jc3 = 0;
+        int jc = 0, jc2 = 0, jc3;
         int jZeroX = 0, jIndent;
         // Переменные для перемещения персонажа
         int movementX = 0, movementY, CenterX, CenterY;
@@ -186,7 +185,7 @@ public class GameThread extends Thread {
 
         while (running) {
 
-            Canvas canvas = surfaceHolder.lockCanvas();
+            canvas = surfaceHolder.lockCanvas();
 
             // Делаем все 1 раз, чтоб каждый раз не вычеслять
             if (rh == 0) {
@@ -210,11 +209,44 @@ public class GameThread extends Thread {
 
                 rockX = random.nextInt(rw - 100);
                 rockY = random.nextInt(rh);
+
+                // Масштабирование
+                floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
+                rock = Bitmap.createScaledBitmap(rock, rw / 30, rh / 20, true);
+                for (int j = 0; j < 2; j++) {
+                    for (int i = 0; i < 8; i++) {
+                        player[i][j] = Bitmap.createScaledBitmap(player[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    }
+                }
+                for (int j = 0; j < 2; j++) {
+                    for (int i = 0; i < 11; i++) {
+                        enemy1[i][j] = Bitmap.createScaledBitmap(enemy1[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
+                    }
+                }
+                for (int j = 0; j < 2; j++) {
+                    for (int i = 0; i < 7; i++) {
+                        enemyAttack[i][j] = Bitmap.createScaledBitmap(enemyAttack[i][j], (int)((rw / xRatio) / scaleP * 1.5), (rh / yRatio) / scaleP, true);
+                    }
+                }
+                for (int j = 0; j < 2; j++) {
+                    for (int i = 0; i < 4; i++) {
+                        l_hit[i][j] = Bitmap.createScaledBitmap(l_hit[i][j], (int)((rw / xRatioH) / scaleLHit), (int)((rw / yRatioH) / scaleLHit), true);
+                    }
+                }
+                for (int j = 0; j < 2; j++) {
+                    for (int i = 0; i < 4; i++) {
+                        r_hit[i][j] = Bitmap.createScaledBitmap(r_hit[i][j], (int)((rw / xRatioH) / scaleLHit), (int)((rw / yRatioH) / scaleLHit), true);
+                    }
+                }
+                l_b = Bitmap.createScaledBitmap(l_b, jc3, jc3, true);
+                r_b = Bitmap.createScaledBitmap(r_b, jc3, jc3, true);
+                joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
+                joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
             }
 
             // Замедление работы
             try {
-                Thread.sleep(20);
+                Thread.sleep(30);
             } catch (InterruptedException e) {
 
             }
@@ -222,39 +254,6 @@ public class GameThread extends Thread {
             // САМА ЛОГИКА ДАЛЬШЕ
             if (canvas != null) {
                 try {
-                    // Масштабирование
-                    floor = Bitmap.createScaledBitmap(floor, rw, rh, true);
-                    rock = Bitmap.createScaledBitmap(rock, rw / 30, rh / 20, true);
-                    for (int j = 0; j < 2; j++) {
-                        for (int i = 0; i < 8; i++) {
-                            player[i][j] = Bitmap.createScaledBitmap(player[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
-                        }
-                    }
-                    for (int j = 0; j < 2; j++) {
-                        for (int i = 0; i < 11; i++) {
-                            enemy1[i][j] = Bitmap.createScaledBitmap(enemy1[i][j], (rw / xRatio) / scaleP, (rh / yRatio) / scaleP, true);
-                        }
-                    }
-                    for (int j = 0; j < 2; j++) {
-                        for (int i = 0; i < 7; i++) {
-                            enemyAttack[i][j] = Bitmap.createScaledBitmap(enemyAttack[i][j], (int)((rw / xRatio) / scaleP * 1.5), (rh / yRatio) / scaleP, true);
-                        }
-                    }
-                    for (int j = 0; j < 2; j++) {
-                        for (int i = 0; i < 4; i++) {
-                            l_hit[i][j] = Bitmap.createScaledBitmap(l_hit[i][j], (int)((rw / xRatioH) / scaleLHit), (int)((rw / yRatioH) / scaleLHit), true);
-                        }
-                    }
-                    for (int j = 0; j < 2; j++) {
-                        for (int i = 0; i < 4; i++) {
-                            r_hit[i][j] = Bitmap.createScaledBitmap(r_hit[i][j], (int)((rw / xRatioH) / scaleLHit), (int)((rw / yRatioH) / scaleLHit), true);
-                        }
-                    }
-                    l_b = Bitmap.createScaledBitmap(l_b, jc3, jc3, true);
-                    r_b = Bitmap.createScaledBitmap(r_b, jc3, jc3, true);
-                    joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
-                    joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
-
                     // Рисуем то, что не собираемся перерисовывать (фон, кнопки)
                     canvas.drawARGB(255, 0, 0, 0);
                     canvas.drawBitmap(floor, rZeroX, 0, backgroundPaint);
@@ -300,8 +299,6 @@ public class GameThread extends Thread {
                         // Проверка, попало ли нажатие на джойстик
                         if (towardPointX > 0 && towardPointX < rZeroX + rw / 2 && towardPointY > 0 && towardPointY < rh) {
 
-                            // ТУТ НУЖНО КАК-ТО УБРАТЬ УГОЛ У ДЖОЙСТИКА
-
                             // Это переменные для положения джойстика
                             jX = towardPointX;
                             jY = towardPointY;
@@ -341,14 +338,12 @@ public class GameThread extends Thread {
                             // Если персонаж ушел за границу - возвращаем
                             if (playerPointX > rw - player[0][0].getWidth()) {
                                 playerPointX = rw - player[0][0].getWidth();
+                            } else if (playerPointX < 0) {
+                                playerPointX = 0;
                             }
                             if (playerPointY > rh - player[0][0].getHeight()) {
                                 playerPointY = rh - player[0][0].getHeight();
-                            }
-                            if (playerPointX < 0) {
-                                playerPointX = 0;
-                            }
-                            if (playerPointY < 0) {
+                            } else if (playerPointY < 0) {
                                 playerPointY = 0;
                             }
 
@@ -362,7 +357,7 @@ public class GameThread extends Thread {
                         canvas.drawBitmap(player[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
 
                         // А если мы бьем
-                    } else if (isHit == 1){
+                    } else {
                         // Рисуем джойстик в центре
                         canvas.drawBitmap(joy2, (int)(jZeroX + jc / scaleJ2), (int)(rh - jc + jc / scaleJ2 - jIndent), backgroundPaint);
 
@@ -384,131 +379,59 @@ public class GameThread extends Thread {
                         if (side == 0) {
                             switch (hitHelper) {
                                 case 1:
-                                    playerPointX -= 10;
-                                    playerPointY += 10;
+                                    playerPointX -= rw / 100;
+                                    playerPointY += rw / 100;
                                     break;
                                 case 2:
-                                    playerPointX += 15;
-                                    playerPointY -= 20;
+                                    playerPointX += rw / 80;
+                                    playerPointY -= rw / 50;
                                     break;
                                 case 3:
-                                    playerPointX += 50;
-                                    playerPointY -= 5;
+                                    playerPointX += rw / 20;
+                                    playerPointY -= rw / 200;
                                     break;
                                 case 4:
-                                    playerPointX += 15;
-                                    playerPointY += 15;
+                                    playerPointX += rw / 80;
+                                    playerPointY += rw / 80;
                                     break;
                             }
                         } else {
                             switch (hitHelper) {
                                 case 1:
-                                    playerPointX += 10;
-                                    playerPointY += 10;
+                                    playerPointX += rw / 100;
+                                    playerPointY += rw / 100;
                                     break;
                                 case 2:
-                                    playerPointX -= 15;
-                                    playerPointY -= 20;
+                                    playerPointX -= rw / 80;
+                                    playerPointY -= rw / 50;
                                     break;
                                 case 3:
-                                    playerPointX -= 50;
-                                    playerPointY -= 5;
+                                    playerPointX -= rw / 20;
+                                    playerPointY -= rw / 200;
                                     break;
                                 case 4:
-                                    playerPointX -= 15;
-                                    playerPointY += 15;
+                                    playerPointX -= rw / 80;
+                                    playerPointY += rw / 80;
                                     break;
                             }
                         }
 
-                        // Рисуем персонажа
-                        canvas.drawBitmap(l_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
+                        if (isHit == 1) {
+                            canvas.drawBitmap(l_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
+                        } else {
+                            canvas.drawBitmap(r_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
+                        }
 
                         // Выходим из удара
-                        if (hitHelper == 6 || playerPointX < 0 || playerPointX > rw){
+                        if (hitHelper == 6){
                             isHit = 0;
                             towardPointY = 0;
                             towardPointX = 0;
                         }
-
-                        hitHelper++;
-
-                        CenterX = playerPointX + rZeroX + player[0][0].getWidth() / 2;
-                        CenterY = playerPointY + player[0][0].getHeight() / 2;
-                        for (int i = 0; i < 2; i++) {
-                            if (CenterX < enemies[i].positionX + enemy1[0][0].getWidth() && CenterX > enemies[i].positionX && CenterY < enemies[i].positionY + enemy1[0][0].getHeight() && CenterY > enemies[i].positionY){
-                                enemies[i].health--;
-                            }
-                        }
-
-                    } else if (isHit == 2){
-
-                        // Рисуем джойстик в центре
-                        canvas.drawBitmap(joy2, (int)(jZeroX + jc / scaleJ2), (int)(rh - jc + jc / scaleJ2 - jIndent), backgroundPaint);
-
-                        // Сначала идем в 1 сторону, потом в другую по кадрам. Я не знаю, как это можно реализовать лучше
-                        if (hitHelper < 4){
-                            frame = hitHelper;
-                        } else {
-                            frame = 6 - hitHelper;
-                        }
-
-                        // Почему-то без этого side обнуляется, это нужно, чтоб бить в нужную сторону
-                        if (movementX > 0) {
-                            side = 0;
-                        } else if (movementX < 0) {
-                            side = 1;
-                        }
-
-                        // Во время удара наш персонаж летит, тут его траектория
-                        if (side == 0) {
-                            switch (hitHelper) {
-                                case 1:
-                                    playerPointX -= 10;
-                                    playerPointY += 10;
-                                    break;
-                                case 2:
-                                    playerPointX += 15;
-                                    playerPointY -= 20;
-                                    break;
-                                case 3:
-                                    playerPointX += 50;
-                                    playerPointY -= 5;
-                                    break;
-                                case 4:
-                                    playerPointX += 15;
-                                    playerPointY += 15;
-                                    break;
-                            }
-                        } else {
-                            switch (hitHelper) {
-                                case 1:
-                                    playerPointX += 10;
-                                    playerPointY += 10;
-                                    break;
-                                case 2:
-                                    playerPointX -= 15;
-                                    playerPointY -= 20;
-                                    break;
-                                case 3:
-                                    playerPointX -= 50;
-                                    playerPointY -= 5;
-                                    break;
-                                case 4:
-                                    playerPointX -= 15;
-                                    playerPointY += 15;
-                                    break;
-                            }
-                        }
-
-                        // Рисуем персонажа
-                        canvas.drawBitmap(r_hit[frame][side], rZeroX + playerPointX, playerPointY, backgroundPaint);
-
-                        // Выходим из удара
-                        if (hitHelper == 6 || playerPointX < 0 || playerPointX > rw){
-                            isHit = 0;
-                            towardPointY = 0;
-                            towardPointX = 0;
+                        if (playerPointX < 0){
+                            playerPointX = 0;
+                        } else if (playerPointX > rw){
+                            playerPointX = rw - player[0][0].getWidth();
                         }
 
                         hitHelper++;
@@ -523,15 +446,16 @@ public class GameThread extends Thread {
                     }
 
                     for (int i = 0; i < 5; i++) {
-
+                        if (!running){
+                            continue;
+                        }
                         if (enemies[i] == null){
                             continue;
                         }
-
                         if (!enemies[i].isAttack){
                             MoveEnemy(i);
                         }
-                        DrawEnemy(canvas, enemyFrame, i, isHit);
+                        DrawEnemy(enemyFrame, i, isHit);
                     }
 
                 } finally{
@@ -574,7 +498,7 @@ public class GameThread extends Thread {
         enemies[en].positionY = random.nextInt(rh - enemy1[0][0].getHeight());
     }
 
-    void DrawEnemy(Canvas canvas, int enemyFrame, int en, byte isHit){
+    void DrawEnemy(int enemyFrame, int en, byte isHit){
         int CenterX, CenterY;
 
         CenterX = playerPointX + rZeroX + player[0][0].getWidth() / 2;
@@ -594,8 +518,8 @@ public class GameThread extends Thread {
                 canvas.drawBitmap(enemyAttack[enemies[en].attackFrame][enemySide], enemies[en].positionX, enemies[en].positionY, backgroundPaint);
             }
 
-            if ((enemies[en].attackFrame == 2 || enemies[en].attackFrame == 3) && isHit == 0 && (CenterX < enemies[en].positionX + enemyAttack[0][0].getWidth() && CenterX > enemies[en].positionX - rw / 25 && CenterY < enemies[en].positionY + enemyAttack[0][0].getHeight() && CenterY > enemies[en].positionY)){
-                YouAreDead();
+            if ((enemies[en].attackFrame == 4 || enemies[en].attackFrame == 5) && isHit == 0 && (CenterX < enemies[en].positionX + enemyAttack[0][0].getWidth() && CenterX > enemies[en].positionX - rw / 25 && CenterY < enemies[en].positionY + enemyAttack[0][0].getHeight() && CenterY > enemies[en].positionY)){
+
             }
 
             if (enemies[en].attackFrame == 6){
@@ -608,10 +532,6 @@ public class GameThread extends Thread {
         } else {
             canvas.drawBitmap(enemy1[enemyFrame % 11][enemySide], enemies[en].positionX, enemies[en].positionY, backgroundPaint);
         }
-    }
-
-    void YouAreDead(){
-        Log.i("YouAreDead", "YouAreDead");
     }
 
     void MoveEnemy(int en){
