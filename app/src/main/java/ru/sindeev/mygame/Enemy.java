@@ -8,4 +8,5 @@ public class Enemy {
     int positionY;
     int attackFrame;
     boolean isAttack;
+    int deathCount;
 }
