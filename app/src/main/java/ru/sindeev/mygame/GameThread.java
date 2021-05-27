@@ -4,8 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.util.Random;
@@ -17,6 +17,8 @@ public class GameThread extends Thread {
 
     private volatile boolean running = true; // флаг для остановки потока
     private Paint backgroundPaint = new Paint();
+    private boolean AreYouDead = false;
+    private int deathAlpha = 0;
 
     // Для врагов
     private Enemy[] enemies = new Enemy[5];
@@ -135,6 +137,10 @@ public class GameThread extends Thread {
         towardPointY = y;
     }
 
+    public boolean getRunning() {
+        return running;
+    }
+
     // Тут вся логика
     @Override
     public void run() {
@@ -158,7 +164,7 @@ public class GameThread extends Thread {
         int frame = 0, side = 0, enemyFrame = 0, hitHelper = 0, noHitTimer = 0;
         byte  isHit = 0;
         // Счет
-        int SCORE = 0;
+        int SCORE = -2;
 
         // Регулеровка размера
         scaleP = 1;
@@ -182,6 +188,8 @@ public class GameThread extends Thread {
         playerPointX = 0;
         playerPointY = 0;
         movementCo = 0.15;
+
+        Paint text = new Paint();
 
         while (running) {
 
@@ -242,6 +250,11 @@ public class GameThread extends Thread {
                 r_b = Bitmap.createScaledBitmap(r_b, jc3, jc3, true);
                 joy = Bitmap.createScaledBitmap(joy, jc, jc, true);
                 joy2 = Bitmap.createScaledBitmap(joy2, jc2, jc2, true);
+
+                text.setColor(Color.RED);
+                text.setARGB(255, 255, 0, 0);
+                text.setTextAlign(Paint.Align.CENTER);
+                text.setTextSize(rh / 7);
             }
 
             // Замедление работы
@@ -264,9 +277,11 @@ public class GameThread extends Thread {
 
                     if (enemies[0] == null || enemies[0].health == 0) {
                         CreateEnemy(1,0);
+                        SCORE++;
                     }
                     if (enemies[1] == null || enemies[1].health == 0) {
                         CreateEnemy(1,1);
+                        SCORE++;
                     }
 
                     // Увеличиваем кадр противника
@@ -446,7 +461,7 @@ public class GameThread extends Thread {
                     }
 
                     for (int i = 0; i < 5; i++) {
-                        if (!running){
+                        if (AreYouDead){
                             continue;
                         }
                         if (enemies[i] == null){
@@ -458,6 +473,20 @@ public class GameThread extends Thread {
                         DrawEnemy(enemyFrame, i, isHit);
                     }
 
+                    if (AreYouDead){
+                        if (deathAlpha < 255) {
+                            canvas.drawARGB(deathAlpha, 0, 0, 0);
+                            deathAlpha += 20;
+                            towardPointX = 0;
+                            towardPointY = 0;
+                        } else {
+                            canvas.drawARGB(255,0,0,0);
+                            canvas.drawText("Ты мертв. Твой счет: " + SCORE, (int)(canvas.getWidth() / 2), (int)(canvas.getHeight() / 2), text);
+                            if (towardPointX != 0 && towardPointY != 0){
+                                requestStop();
+                            }
+                        }
+                    }
                 } finally{
                     surfaceHolder.unlockCanvasAndPost(canvas);
                 }
@@ -465,7 +494,7 @@ public class GameThread extends Thread {
         }
     }
 
-    void CreateEnemy(int id, int en){
+    private void CreateEnemy(int id, int en){
         int min = rZeroX;
         int max = rw / 3;
         int diff = max - min;
@@ -498,7 +527,7 @@ public class GameThread extends Thread {
         enemies[en].positionY = random.nextInt(rh - enemy1[0][0].getHeight());
     }
 
-    void DrawEnemy(int enemyFrame, int en, byte isHit){
+    private void DrawEnemy(int enemyFrame, int en, byte isHit){
         int CenterX, CenterY;
 
         CenterX = playerPointX + rZeroX + player[0][0].getWidth() / 2;
@@ -519,7 +548,7 @@ public class GameThread extends Thread {
             }
 
             if ((enemies[en].attackFrame == 4 || enemies[en].attackFrame == 5) && isHit == 0 && (CenterX < enemies[en].positionX + enemyAttack[0][0].getWidth() && CenterX > enemies[en].positionX - rw / 25 && CenterY < enemies[en].positionY + enemyAttack[0][0].getHeight() && CenterY > enemies[en].positionY)){
-
+                AreYouDead=true;
             }
 
             if (enemies[en].attackFrame == 6){
@@ -534,7 +563,7 @@ public class GameThread extends Thread {
         }
     }
 
-    void MoveEnemy(int en){
+    private void MoveEnemy(int en){
         int roadX, roadY, movePoint;
 
         if (enemies[en] != null && enemies[en].health > 0){

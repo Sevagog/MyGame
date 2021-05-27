@@ -1,6 +1,7 @@
 package ru.sindeev.mygame;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -9,10 +10,13 @@ import androidx.annotation.NonNull;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
+    private Context context;
+
     private GameThread gameThread;
 
     public GameView(Context context) {
         super(context);
+        this.context = context;
         getHolder().addCallback(this);
     }
 
@@ -43,6 +47,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (!gameThread.getRunning()){
+            gameThread.interrupt();
+            Intent intent = new Intent(context, MainActivity.class);
+            context.startActivity(intent);
+        }
         if (event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_DOWN) {
             gameThread.setTowardPoint((int) event.getX(), (int) event.getY());
         } else if (event.getAction() == MotionEvent.ACTION_UP){
